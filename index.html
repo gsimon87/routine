@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Greg's Routine">
+<title>Greg's Routine</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:#F5F0E8; --warm-white:#FAF8F4; --stone:#C4B8A4;
+    --bark:#8B7355; --deep:#2C2416; --green:#4A6741;
+    --green-light:#E8F0E6; --gold:#C9A84C; --gold-light:#F5EDD6;
+    --blush:#E8D5CC; --text:#3A3028; --muted:#8A7E72;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { background:var(--cream); color:var(--text); font-family:'DM Sans',sans-serif; font-weight:300; min-height:100vh; padding-bottom:100px; }
+
+  .header { background:var(--deep); padding:56px 24px 28px; position:relative; overflow:hidden; }
+  .header::before { content:''; position:absolute; top:-40px; right:-40px; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle,rgba(201,168,76,0.15) 0%,transparent 70%); }
+  .header-label { font-size:10px; font-weight:500; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:8px; }
+  .header h1 { font-family:'Cormorant Garamond',serif; font-size:36px; font-weight:300; color:var(--cream); line-height:1.1; font-style:italic; }
+  .header-sub { font-size:12px; color:var(--stone); margin-top:6px; }
+
+  .day-scroll { display:flex; gap:8px; padding:20px 24px 0; overflow-x:auto; scrollbar-width:none; }
+  .day-scroll::-webkit-scrollbar { display:none; }
+  .day-pill { flex-shrink:0; padding:8px 16px; border-radius:20px; border:1.5px solid var(--stone); background:transparent; font-size:13px; color:var(--muted); cursor:pointer; transition:all 0.2s; text-align:center; }
+  .day-pill.active { background:var(--deep); border-color:var(--deep); color:var(--cream); }
+  .day-pill.today { border-color:var(--gold); }
+  .day-pill.today.active { color:var(--gold); }
+  .today-dot { width:4px; height:4px; border-radius:50%; background:var(--gold); margin:2px auto 0; }
+
+  .tabs { display:flex; margin:20px 24px 0; background:var(--warm-white); border-radius:12px; padding:4px; border:1px solid rgba(196,184,164,0.3); }
+  .tab { flex:1; padding:10px; text-align:center; font-size:13px; color:var(--muted); border-radius:9px; cursor:pointer; transition:all 0.2s; }
+  .tab.active { background:var(--deep); color:var(--cream); }
+
+  .section { padding:0 24px; margin-top:24px; }
+  .section-header { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .section-icon { width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .icon-morning { background:var(--gold-light); }
+  .icon-evening { background:#E8E0F0; }
+  .icon-hair { background:var(--green-light); }
+  .section-title { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--deep); }
+  .section-badge { margin-left:auto; font-size:11px; color:var(--muted); }
+
+  /* Step card */
+  .step-card { background:var(--warm-white); border-radius:14px; padding:14px; margin-bottom:8px; border:1px solid rgba(196,184,164,0.25); }
+  .step-top { display:flex; align-items:center; gap:12px; }
+  .step-img-wrap { width:48px; height:48px; border-radius:10px; background:#F0EBE3; flex-shrink:0; display:flex; align-items:center; justify-content:center; position:relative; }
+  .img-emoji { font-size:20px; }
+  .step-num { position:absolute; bottom:-3px; right:-3px; width:18px; height:18px; border-radius:50%; font-size:9px; font-weight:600; display:flex; align-items:center; justify-content:center; border:2px solid var(--warm-white); }
+  .num-morning { background:var(--gold); color:var(--deep); }
+  .num-evening { background:#7B6FA0; color:white; }
+  .num-hair { background:var(--green); color:white; }
+
+  .step-meta { flex:1; min-width:0; }
+  .step-product { font-size:13px; font-weight:400; color:var(--deep); line-height:1.3; }
+  .step-brand { font-size:11px; color:var(--muted); margin-top:2px; }
+  .step-tag { display:inline-block; margin-top:5px; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:500; letter-spacing:0.5px; text-transform:uppercase; }
+
+  .tag-active { background:#FDE8E8; color:#C0392B; }
+  .tag-protect { background:var(--gold-light); color:#8B6914; }
+  .tag-repair { background:var(--green-light); color:var(--green); }
+  .tag-hydrate { background:#E8F0F8; color:#2C5F8A; }
+  .tag-cleanse { background:var(--blush); color:#7A4A3A; }
+  .tag-exfoliate { background:#F0E8F8; color:#6A3A8A; }
+  .tag-scalp { background:var(--green-light); color:var(--green); }
+
+  /* How to apply */
+  .step-how { margin-top:10px; padding-top:10px; border-top:1px solid rgba(196,184,164,0.2); font-size:12px; color:var(--text); line-height:1.6; }
+
+  /* Wait time between steps */
+  .wait-pill { display:flex; align-items:center; gap:6px; margin:6px 0 6px 14px; }
+  .wait-line { width:1px; height:20px; background:var(--stone); margin-left:22px; }
+  .wait-badge { background:var(--deep); color:var(--gold); font-size:10px; font-weight:500; padding:3px 10px; border-radius:10px; letter-spacing:0.5px; }
+
+  .note-banner { background:var(--gold-light); border-left:3px solid var(--gold); border-radius:0 10px 10px 0; padding:10px 14px; margin-bottom:10px; font-size:12px; color:var(--bark); line-height:1.5; }
+
+  .rest-card { background:var(--warm-white); border-radius:14px; padding:20px; border:1.5px dashed var(--stone); text-align:center; }
+  .rest-card .rest-emoji { font-size:28px; margin-bottom:8px; }
+  .rest-card .rest-title { font-family:'Cormorant Garamond',serif; font-size:18px; color:var(--deep); font-style:italic; }
+  .rest-card .rest-sub { font-size:12px; color:var(--muted); margin-top:4px; }
+
+  .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--deep); padding:12px 24px 28px; display:flex; justify-content:space-around; border-top:1px solid rgba(255,255,255,0.08); }
+  .nav-item { display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; opacity:0.5; }
+  .nav-item.active { opacity:1; }
+  .nav-icon { font-size:20px; }
+  .nav-label { font-size:10px; color:var(--cream); letter-spacing:0.5px; }
+
+  .divider { height:1px; background:rgba(196,184,164,0.2); margin:20px 24px; }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">Gregory · Skin & Hair</div>
+  <h1>My Routine</h1>
+  <div class="header-sub">Korean skincare · Personalised</div>
+</div>
+
+<div class="day-scroll" id="dayScroll"></div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('skin',this)">✦ Skincare</div>
+  <div class="tab" onclick="switchTab('hair',this)">◈ Hair</div>
+</div>
+
+<div id="skinContent"></div>
+<div id="hairContent" class="hidden"></div>
+
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="goToday()"><div class="nav-icon">◉</div><div class="nav-label">Today</div></div>
+  <div class="nav-item" onclick="window.scrollTo({top:0,behavior:'smooth'})"><div class="nav-icon">≡</div><div class="nav-label">Top</div></div>
+</div>
+
+<script>
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+const E = {
+  cleanser:'🧴', boj_glow:'✨', boj_eye:'👁️', boj_spf:'☀️',
+  goodal:'🍊', isntree:'💧', vitalift:'⭐', somebymi:'🌿',
+  reedle:'💎', rejuran:'🔬', dr33:'🌱', vt_hair:'🧬',
+};
+
+// All product definitions with full how-to instructions
+const PRODUCTS = {
+  cleanser: {
+    name:'Low pH Good Morning Gel Cleanser', brand:'COSRX', tag:'cleanse', tagLabel:'Cleanse',
+    how:'Wet your face first. Squeeze a small amount onto your fingertips, lather gently in circular motions for 30–60 seconds. Rinse thoroughly with lukewarm water. No cotton pad needed.',
+    wait: null
+  },
+  boj_glow: {
+    name:'Glow Serum (Propolis + Niacinamide)', brand:'Beauty of Joseon', tag:'hydrate', tagLabel:'Hydrate & Brighten',
+    how:'Dispense 2–3 drops onto your fingertips. Press and pat gently into skin — do not rub. Allow to absorb for about 30 seconds before the next step.',
+    wait: null
+  },
+  boj_eye: {
+    name:'Revive Eye Serum (Ginseng + Retinal)', brand:'Beauty of Joseon', tag:'repair', tagLabel:'Eye Care',
+    how:'Dot a tiny amount around the orbital bone using your ring finger — never directly on the eyelid. Tap gently until absorbed. No wait needed before next step.',
+    wait: null
+  },
+  boj_spf: {
+    name:'Relief Sun SPF50', brand:'Beauty of Joseon', tag:'protect', tagLabel:'Protect',
+    how:'Apply last, always. Use a generous amount (about half a teaspoon for the face). Press into skin rather than rubbing — do not massage in. Reapply every 2 hours if outdoors.',
+    wait: null
+  },
+  goodal: {
+    name:'Green Tangerine Vita C Dark Spot Serum', brand:'Goodal', tag:'active', tagLabel:'Vitamin C',
+    how:'Apply 2–3 drops to clean, dry skin. Press and pat into skin — avoid eye area. Do not layer with the retinoid on the same night.',
+    wait:'2 min'
+  },
+  isntree: {
+    name:'Hyaluronic Acid Toner', brand:'Isntree', tag:'hydrate', tagLabel:'Buffer Layer',
+    how:'Pour a small amount onto a cotton pad or into your palms. If using a cotton pad, swipe gently. If using hands, press and pat into skin. This acts as a buffer before retinoid — skin should still feel slightly damp.',
+    wait:'1 min'
+  },
+  vitalift: {
+    name:'Vitalift-A Forte', brand:'Dr. Different', tag:'active', tagLabel:'Retinoid',
+    how:'Skin must be fully dry before applying — wait at least 10 minutes after the toner. Apply a pea-sized amount across forehead, cheeks and chin. Pat gently, avoid eye area and corners of mouth. Less is more.',
+    wait:'10 min'
+  },
+  somebymi: {
+    name:'AHA BHA PHA 30 Days Miracle Toner', brand:'Some By Mi', tag:'exfoliate', tagLabel:'Exfoliate',
+    how:'Pour onto a cotton pad and swipe across face in gentle outward strokes. Do not rinse off. Avoid eye area. Use no other actives this night — let it work alone.',
+    wait:'2 min'
+  },
+  reedle: {
+    name:'Reedle Shot 100', brand:'VT', tag:'active', tagLabel:'Treatment',
+    how:'Apply a pearl-sized amount to clean, dry skin. Press and roll gently using the micro-tip applicator in small circular motions. Cover the whole face. You may feel a slight tingling — this is normal. Wait at least 15 minutes before applying the next product.',
+    wait:'15 min'
+  },
+  rejuran: {
+    name:'Derma Healer Moisture Cream', brand:'Rejuran', tag:'repair', tagLabel:'Repair',
+    how:'Take a pea-sized amount and warm between fingertips. Press and pat into skin as the final step — this seals everything in. No wait needed, this is the last step.',
+    wait: null
+  },
+};
+
+const HAIR_PRODUCTS = {
+  dr33: {
+    name:'Hair Ampoule+', brand:'Dr.33', tag:'scalp', tagLabel:'Scalp Treatment',
+    how:'Part dry hair into sections. Apply directly to the scalp using the nozzle tip. Massage gently with fingertips for 2–3 minutes to stimulate circulation. Leave in overnight — no rinsing. Wash out the following morning.',
+  },
+  vt_hair: {
+    name:'PDRN Reedle Shot Hair Ampoule', brand:'VT', tag:'scalp', tagLabel:'PDRN Intensive',
+    how:'Tear open one sachet. Part hair into sections and apply contents directly to the scalp. Massage in gently. Leave in — do not rinse. This is your weekly intensive treatment. 5 sachets = 5 weeks of Saturdays.',
+  },
+};
+
+function waitConnector(time) {
+  return `<div class="wait-line"></div><div class="wait-pill"><div class="wait-badge">⏱ Wait ${time}</div></div><div class="wait-line"></div>`;
+}
+
+function card(key, num, numClass, how, wait, extraNote) {
+  const p = PRODUCTS[key];
+  return `
+    ${wait ? waitConnector(wait) : ''}
+    <div class="step-card">
+      <div class="step-top">
+        <div class="step-img-wrap">
+          <span class="img-emoji">${E[key]}</span>
+          <div class="step-num num-${numClass}">${num}</div>
+        </div>
+        <div class="step-meta">
+          <div class="step-product">${p.name}</div>
+          <div class="step-brand">${p.brand}</div>
+          <span class="step-tag tag-${p.tag}">${p.tagLabel}</span>
+        </div>
+      </div>
+      <div class="step-how">${p.how}${extraNote ? '<br><br><strong>Note:</strong> ' + extraNote : ''}</div>
+    </div>
+    ${p.wait ? waitConnector(p.wait) : ''}
+  `;
+}
+
+function hairCard(key, note) {
+  const p = HAIR_PRODUCTS[key];
+  return `
+    <div class="note-banner">${note}</div>
+    <div class="step-card">
+      <div class="step-top">
+        <div class="step-img-wrap">
+          <span class="img-emoji">${E[key]}</span>
+          <div class="step-num num-hair">1</div>
+        </div>
+        <div class="step-meta">
+          <div class="step-product">${p.name}</div>
+          <div class="step-brand">${p.brand}</div>
+          <span class="step-tag tag-${p.tag}">${p.tagLabel}</span>
+        </div>
+      </div>
+      <div class="step-how">${p.how}</div>
+    </div>
+  `;
+}
+
+const morningSteps = () =>
+  card('cleanser',1,'morning') +
+  card('boj_glow',2,'morning') +
+  card('boj_eye',3,'morning') +
+  card('boj_spf',4,'morning');
+
+const eveningData = {
+  Mon: {
+    note:'Vitamin C night — no retinoid tonight',
+    steps: () =>
+      card('cleanser',1,'evening') +
+      card('goodal',2,'evening') +
+      card('boj_eye',3,'evening') +
+      card('rejuran',4,'evening')
+  },
+  Tue: {
+    note:'Retinoid night — skin must be dry before applying Vitalift-A',
+    steps: () =>
+      card('cleanser',1,'evening') +
+      card('isntree',2,'evening') +
+      card('vitalift',3,'evening') +
+      card('boj_eye',4,'evening') +
+      card('rejuran',5,'evening')
+  },
+  Wed: {
+    note:'Exfoliation night — no other actives, let the AHA BHA work alone',
+    steps: () =>
+      card('cleanser',1,'evening') +
+      card('somebymi',2,'evening') +
+      card('boj_eye',3,'evening') +
+      card('rejuran',4,'evening')
+  },
+  Thu: {
+    note:'Vitamin C night — no retinoid tonight',
+    steps: () =>
+      card('cleanser',1,'evening') +
+      card('goodal',2,'evening') +
+      card('boj_eye',3,'evening') +
+      card('rejuran',4,'evening')
+  },
+  Fri: {
+    note:'Retinoid night — skin must be dry before applying Vitalift-A',
+    steps: () =>
+      card('cleanser',1,'evening') +
+      card('isntree',2,'evening') +
+      card('vitalift',3,'evening') +
+      card('boj_eye',4,'evening') +
+      card('rejuran',5,'evening')
+  },
+  Sat: {
+    note:'Reedle Shot night — wait a full 15 minutes before applying cream',
+    steps: () =>
+      card('cleanser',1,'evening') +
+      card('reedle',2,'evening') +
+      card('boj_eye',3,'evening') +
+      card('rejuran',4,'evening')
+  },
+  Sun: {
+    rest: true,
+    note: null,
+    steps: () =>
+      card('cleanser',1,'evening') +
+      card('isntree',2,'evening') +
+      card('boj_eye',3,'evening') +
+      card('rejuran',4,'evening')
+  },
+};
+
+const hairSchedule = {
+  Mon: null, Wed: null, Fri: null,
+  Tue: { key:'dr33', note:'Apply tonight → wash hair Wednesday morning' },
+  Thu: { key:'dr33', note:'Apply tonight → wash hair Friday morning' },
+  Sat: { key:'vt_hair', note:'PDRN intensive — leave in all day Sunday, no wash tomorrow' },
+  Sun: { key:'dr33', note:'Apply tonight → wash hair Monday morning' },
+};
+
+let selectedDay = DAYS[new Date().getDay()];
+
+function renderDays() {
+  const today = DAYS[new Date().getDay()];
+  const scroll = document.getElementById('dayScroll');
+  scroll.innerHTML = '';
+  DAYS.forEach(d => {
+    const pill = document.createElement('div');
+    pill.className = 'day-pill'+(d===selectedDay?' active':'')+(d===today?' today':'');
+    pill.innerHTML = d+(d===today?'<div class="today-dot"></div>':'');
+    pill.onclick = () => { selectedDay=d; renderDays(); renderContent(); };
+    scroll.appendChild(pill);
+  });
+}
+
+function renderSkinContent() {
+  const ev = eveningData[selectedDay];
+  let html = `
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon icon-morning">☀️</div>
+        <div class="section-title">Morning</div>
+        <div class="section-badge">Daily</div>
+      </div>
+      ${morningSteps()}
+    </div>
+    <div class="divider"></div>
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon icon-evening">🌙</div>
+        <div class="section-title">Evening</div>
+        <div class="section-badge">${selectedDay}</div>
+      </div>`;
+
+  if (ev) {
+    if (ev.note) html += `<div class="note-banner">${ev.note}</div>`;
+    if (ev.rest) html += `<div class="rest-card"><div class="rest-emoji">🌿</div><div class="rest-title">Rest Night</div><div class="rest-sub">Gentle routine only — let your barrier recover</div></div><br>`;
+    html += ev.steps();
+  }
+  html += '</div>';
+  document.getElementById('skinContent').innerHTML = html;
+}
+
+function renderHairContent() {
+  const h = hairSchedule[selectedDay];
+  let html = `
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon icon-hair">🌿</div>
+        <div class="section-title">Hair & Scalp</div>
+        <div class="section-badge">${selectedDay}</div>
+      </div>`;
+
+  if (h) {
+    html += hairCard(h.key, h.note);
+  } else {
+    html += `<div class="rest-card"><div class="rest-emoji">💤</div><div class="rest-title">Rest Day</div><div class="rest-sub">No scalp treatment tonight</div></div>`;
+  }
+  html += '</div>';
+  document.getElementById('hairContent').innerHTML = html;
+}
+
+function renderContent() { renderSkinContent(); renderHairContent(); }
+
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('skinContent').classList.toggle('hidden', tab!=='skin');
+  document.getElementById('hairContent').classList.toggle('hidden', tab!=='hair');
+}
+
+function goToday() {
+  selectedDay = DAYS[new Date().getDay()];
+  renderDays(); renderContent();
+}
+
+renderDays(); renderContent();
+setTimeout(() => {
+  const a = document.querySelector('.day-pill.active');
+  if (a) a.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+}, 100);
+</script>
+</body>
+</html>
