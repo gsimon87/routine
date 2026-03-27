@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Greg's Routine">
+<title>Greg's Routine</title>
+
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjQwIiBmaWxsPSIjMkMyNDE2Ii8+PGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0M5QTg0QyIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48dGV4dCB4PSI5MCIgeT0iODIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLHNlcmlmIiBmb250LXNpemU9IjQ0IiBmb250LXN0eWxlPSJpdGFsaWMiIGZpbGw9IiNDOUE4NEMiPkc8L3RleHQ+PHRleHQgeD0iOTAiIHk9IjExMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNDNEI4QTQiIGxldHRlci1zcGFjaW5nPSIzIj5ST1VUSU5FPC90ZXh0PjxsaW5lIHgxPSI2MCIgeTE9IjEyNCIgeDI9IjEyMCIgeTI9IjEyNCIgc3Ryb2tlPSIjQzlBODRDIiBzdHJva2Utd2lkdGg9IjAuNSIvPjwvc3ZnPg==">
+
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:#F5F0E8; --warm-white:#FAF8F4; --stone:#C4B8A4;
+    --bark:#8B7355; --deep:#2C2416; --green:#4A6741;
+    --green-light:#E8F0E6; --gold:#C9A84C; --gold-light:#F5EDD6;
+    --blush:#E8D5CC; --text:#3A3028; --muted:#8A7E72;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { background:var(--cream); color:var(--text); font-family:'DM Sans',sans-serif; font-weight:300; min-height:100vh; padding-bottom:110px; }
+
+  .header { background:var(--deep); padding:56px 24px 24px; position:relative; overflow:hidden; }
+  .header::before { content:''; position:absolute; top:-40px; right:-40px; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle,rgba(201,168,76,0.15) 0%,transparent 70%); }
+  .header-label { font-size:10px; font-weight:500; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
+  .header h1 { font-family:'Cormorant Garamond',serif; font-size:34px; font-weight:300; color:var(--cream); line-height:1.1; font-style:italic; }
+  .header-sub { font-size:12px; color:var(--stone); margin-top:5px; }
+
+  .progress-wrap { margin-top:14px; }
+  .progress-label { display:flex; justify-content:space-between; font-size:11px; color:var(--stone); margin-bottom:5px; }
+  .progress-bar { height:3px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden; }
+  .progress-fill { height:100%; background:var(--gold); border-radius:2px; transition:width 0.4s ease; }
+
+  .week-reset-notice { font-size:10px; color:rgba(201,168,76,0.6); margin-top:6px; letter-spacing:0.3px; }
+
+  .day-scroll { display:flex; gap:8px; padding:20px 24px 0; overflow-x:auto; scrollbar-width:none; }
+  .day-scroll::-webkit-scrollbar { display:none; }
+  .day-pill { flex-shrink:0; padding:8px 16px; border-radius:20px; border:1.5px solid var(--stone); background:transparent; font-size:13px; color:var(--muted); cursor:pointer; transition:all 0.2s; text-align:center; position:relative; }
+  .day-pill.active { background:var(--deep); border-color:var(--deep); color:var(--cream); }
+  .day-pill.today { border-color:var(--gold); }
+  .day-pill.today.active { color:var(--gold); }
+  .today-dot { width:4px; height:4px; border-radius:50%; background:var(--gold); margin:2px auto 0; }
+  .day-pill .day-check { position:absolute; top:-4px; right:-4px; width:14px; height:14px; background:var(--green); border-radius:50%; display:none; align-items:center; justify-content:center; font-size:8px; color:white; border:2px solid var(--cream); }
+  .day-pill.completed .day-check { display:flex; }
+
+  .tabs { display:flex; margin:20px 24px 0; background:var(--warm-white); border-radius:12px; padding:4px; border:1px solid rgba(196,184,164,0.3); }
+  .tab { flex:1; padding:10px; text-align:center; font-size:13px; color:var(--muted); border-radius:9px; cursor:pointer; transition:all 0.2s; }
+  .tab.active { background:var(--deep); color:var(--cream); }
+
+  .section { padding:0 24px; margin-top:24px; }
+  .section-header { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .section-icon { width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .icon-morning { background:var(--gold-light); }
+  .icon-evening { background:#E8E0F0; }
+  .icon-hair { background:var(--green-light); }
+  .section-title { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--deep); }
+  .section-badge { margin-left:auto; font-size:11px; color:var(--muted); }
+  .section-progress { font-size:11px; color:var(--green); font-weight:500; margin-left:auto; }
+
+  .step-card { background:var(--warm-white); border-radius:14px; padding:14px; margin-bottom:8px; border:1px solid rgba(196,184,164,0.25); cursor:pointer; transition:all 0.2s; user-select:none; }
+  .step-card.done { background:#F2F7F1; border-color:rgba(74,103,65,0.2); }
+  .step-card.done .step-product { text-decoration:line-through; color:var(--muted); }
+  .step-card.done .step-how { opacity:0.5; }
+
+  .step-top { display:flex; align-items:center; gap:12px; }
+  .step-img-wrap { width:48px; height:48px; border-radius:10px; background:#F0EBE3; flex-shrink:0; display:flex; align-items:center; justify-content:center; position:relative; transition:all 0.2s; }
+  .step-card.done .step-img-wrap { background:var(--green-light); }
+  .img-emoji { font-size:20px; }
+  .step-num { position:absolute; bottom:-3px; right:-3px; width:18px; height:18px; border-radius:50%; font-size:9px; font-weight:600; display:flex; align-items:center; justify-content:center; border:2px solid var(--warm-white); transition:all 0.2s; }
+  .step-card.done .step-num { background:var(--green) !important; color:white !important; }
+  .num-morning { background:var(--gold); color:var(--deep); }
+  .num-evening { background:#7B6FA0; color:white; }
+  .num-hair { background:var(--green); color:white; }
+
+  .step-tick { width:22px; height:22px; border-radius:50%; border:1.5px solid var(--stone); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:transparent; transition:all 0.2s; margin-left:auto; }
+  .step-card.done .step-tick { background:var(--green); border-color:var(--green); color:white; }
+
+  .step-meta { flex:1; min-width:0; }
+  .step-product { font-size:13px; font-weight:400; color:var(--deep); line-height:1.3; transition:all 0.2s; }
+  .step-brand { font-size:11px; color:var(--muted); margin-top:2px; }
+  .step-tag { display:inline-block; margin-top:5px; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:500; letter-spacing:0.5px; text-transform:uppercase; }
+
+  .tag-active { background:#FDE8E8; color:#C0392B; }
+  .tag-protect { background:var(--gold-light); color:#8B6914; }
+  .tag-repair { background:var(--green-light); color:var(--green); }
+  .tag-hydrate { background:#E8F0F8; color:#2C5F8A; }
+  .tag-cleanse { background:var(--blush); color:#7A4A3A; }
+  .tag-exfoliate { background:#F0E8F8; color:#6A3A8A; }
+  .tag-scalp { background:var(--green-light); color:var(--green); }
+
+  .step-how { margin-top:10px; padding-top:10px; border-top:1px solid rgba(196,184,164,0.2); font-size:12px; color:var(--text); line-height:1.6; transition:all 0.2s; }
+
+  .wait-connector { display:flex; flex-direction:column; align-items:flex-start; padding-left:34px; margin:2px 0; }
+  .wait-line-v { width:1px; height:10px; background:var(--stone); }
+  .wait-badge { background:var(--deep); color:var(--gold); font-size:10px; font-weight:500; padding:3px 10px; border-radius:10px; letter-spacing:0.5px; margin:2px 0; }
+
+  .note-banner { background:var(--gold-light); border-left:3px solid var(--gold); border-radius:0 10px 10px 0; padding:10px 14px; margin-bottom:10px; font-size:12px; color:var(--bark); line-height:1.5; }
+
+  .rest-card { background:var(--warm-white); border-radius:14px; padding:20px; border:1.5px dashed var(--stone); text-align:center; }
+  .rest-card .rest-emoji { font-size:28px; margin-bottom:8px; }
+  .rest-card .rest-title { font-family:'Cormorant Garamond',serif; font-size:18px; color:var(--deep); font-style:italic; }
+  .rest-card .rest-sub { font-size:12px; color:var(--muted); margin-top:4px; }
+
+  .all-done { background:var(--green); border-radius:14px; padding:16px 20px; margin:0 24px 16px; display:flex; align-items:center; gap:12px; animation:slideIn 0.3s ease; }
+  @keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+  .all-done-emoji { font-size:24px; }
+  .all-done-text { color:white; }
+  .all-done-title { font-size:14px; font-weight:500; }
+  .all-done-sub { font-size:11px; opacity:0.8; margin-top:2px; }
+
+  .reset-btn { display:block; text-align:center; margin:8px 24px 0; padding:10px; border-radius:10px; background:transparent; border:1px solid var(--stone); color:var(--muted); font-size:12px; cursor:pointer; font-family:'DM Sans',sans-serif; }
+
+  .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--deep); padding:12px 24px 28px; display:flex; justify-content:space-around; border-top:1px solid rgba(255,255,255,0.08); }
+  .nav-item { display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; opacity:0.5; }
+  .nav-item.active { opacity:1; }
+  .nav-icon { font-size:20px; }
+  .nav-label { font-size:10px; color:var(--cream); letter-spacing:0.5px; }
+
+  .divider { height:1px; background:rgba(196,184,164,0.2); margin:20px 24px; }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">Gregory · Skin & Hair</div>
+  <h1>My Routine</h1>
+  <div class="header-sub">Korean skincare · Personalised</div>
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span id="progressText">Today's progress</span>
+      <span id="progressCount">0 / 0 steps</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="week-reset-notice">↺ Resets every Monday</div>
+  </div>
+</div>
+
+<div class="day-scroll" id="dayScroll"></div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('skin',this)">✦ Skincare</div>
+  <div class="tab" onclick="switchTab('hair',this)">◈ Hair</div>
+</div>
+
+<div id="allDoneBanner" class="hidden"></div>
+<div id="skinContent"></div>
+<div id="hairContent" class="hidden"></div>
+<button class="reset-btn" onclick="resetDay()">↺ Reset today's ticks</button>
+
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="goToday()"><div class="nav-icon">◉</div><div class="nav-label">Today</div></div>
+  <div class="nav-item" onclick="window.scrollTo({top:0,behavior:'smooth'})"><div class="nav-icon">≡</div><div class="nav-label">Top</div></div>
+</div>
+
+<script>
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+// Get the ISO week number for a given date
+function getISOWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+function currentWeekKey() {
+  const now = new Date();
+  return `${now.getFullYear()}-W${getISOWeek(now)}`;
+}
+
+// On load: check if stored week matches current week. If not, wipe ticks.
+function checkWeeklyReset() {
+  const storedWeek = localStorage.getItem('routine_week');
+  const thisWeek = currentWeekKey();
+  if (storedWeek !== thisWeek) {
+    localStorage.removeItem('routine_ticked');
+    localStorage.setItem('routine_week', thisWeek);
+  }
+}
+
+checkWeeklyReset();
+
+const E = {
+  cleanser:'🧴', boj_glow:'✨', boj_eye:'👁️', boj_spf:'☀️',
+  goodal:'🍊', isntree:'💧', vitalift:'⭐', somebymi:'🌿',
+  reedle:'💎', rejuran:'🔬', dr33:'🌱', vt_hair:'🧬',
+};
+
+const PRODUCTS = {
+  cleanser: {
+    name:'Low pH Good Morning Gel Cleanser', brand:'COSRX', tag:'cleanse', tagLabel:'Cleanse',
+    how:'Wet your face first. Squeeze a small amount onto your fingertips, lather gently in circular motions for 30–60 seconds. Rinse thoroughly with lukewarm water. No cotton pad needed.',
+    wait:null
+  },
+  boj_glow: {
+    name:'Glow Serum (Propolis + Niacinamide)', brand:'Beauty of Joseon', tag:'hydrate', tagLabel:'Hydrate & Brighten',
+    how:'Dispense 2–3 drops onto your fingertips. Press and pat gently into skin — do not rub. Allow 30 seconds to absorb before the next step.',
+    wait:null
+  },
+  boj_eye: {
+    name:'Revive Eye Serum (Ginseng + Retinal)', brand:'Beauty of Joseon', tag:'repair', tagLabel:'Eye Care',
+    how:'Dot a tiny amount around the orbital bone using your ring finger — never directly on the eyelid. Tap gently until absorbed.',
+    wait:null
+  },
+  boj_spf: {
+    name:'Relief Sun SPF50', brand:'Beauty of Joseon', tag:'protect', tagLabel:'Protect',
+    how:'Apply last, always. Use a generous amount (about half a teaspoon for the face). Press into skin — do not rub or massage in. Reapply every 2 hours if outdoors.',
+    wait:null
+  },
+  goodal: {
+    name:'Green Tangerine Vita C Dark Spot Serum', brand:'Goodal', tag:'active', tagLabel:'Vitamin C',
+    how:'Apply 2–3 drops to clean, dry skin. Press and pat in — avoid the eye area. Do not use the retinoid on the same night.',
+    wait:'2 min'
+  },
+  isntree: {
+    name:'Hyaluronic Acid Toner', brand:'Isntree', tag:'hydrate', tagLabel:'Buffer Layer',
+    how:'Pour a small amount into your palms or onto a cotton pad. Press and pat into skin — it should feel slightly damp. This buffers skin before the retinoid application.',
+    wait:'1 min'
+  },
+  vitalift: {
+    name:'Vitalift-A Forte', brand:'Dr. Different', tag:'active', tagLabel:'Retinoid',
+    how:'Skin must be fully dry — wait at least 10 minutes after toner. Squeeze a pea-sized amount and dot across forehead, cheeks and chin. Pat gently, avoid the eye area and corners of mouth. Less is more.',
+    wait:'10 min'
+  },
+  somebymi: {
+    name:'AHA BHA PHA 30 Days Miracle Toner', brand:'Some By Mi', tag:'exfoliate', tagLabel:'Exfoliate',
+    how:'Pour onto a cotton pad and swipe gently across face in outward strokes. Do not rinse off. Avoid the eye area. No other actives tonight — let this work alone.',
+    wait:'2 min'
+  },
+  reedle: {
+    name:'Reedle Shot 100', brand:'VT', tag:'active', tagLabel:'Treatment',
+    how:'Apply a pearl-sized amount to clean, dry skin. Press and roll gently using the micro-tip applicator in small circular motions across the whole face. Slight tingling is normal. Wait 15 minutes before applying the cream.',
+    wait:'15 min'
+  },
+  rejuran: {
+    name:'Derma Healer Moisture Cream', brand:'Rejuran', tag:'repair', tagLabel:'Repair',
+    how:'Take a pea-sized amount and warm between fingertips. Press and pat into skin as the final step — this seals everything in.',
+    wait:null
+  },
+};
+
+const HAIR_PRODUCTS = {
+  dr33: {
+    name:'Hair Ampoule+', brand:'Dr.33', tag:'scalp', tagLabel:'Scalp Treatment',
+    how:'Part dry hair into sections. Apply directly to scalp using the nozzle tip, working methodically across the whole scalp. Massage gently with fingertips for 2–3 minutes to stimulate circulation. Leave in overnight — no rinsing. Wash out the following morning.',
+  },
+  vt_hair: {
+    name:'PDRN Reedle Shot Hair Ampoule', brand:'VT', tag:'scalp', tagLabel:'PDRN Intensive',
+    how:'Part hair into sections. Apply directly from the tube nozzle onto the scalp in small dots, working section by section across the entire scalp. Massage in gently with fingertips for 1–2 minutes. Leave in — do not rinse. Apply weekly every Saturday night.',
+  },
+};
+
+const morningKeys = ['cleanser','boj_glow','boj_eye','boj_spf'];
+const eveningData = {
+  Mon: { note:'Vitamin C night — no retinoid tonight', keys:['cleanser','goodal','boj_eye','rejuran'] },
+  Tue: { note:'Retinoid night — skin must be fully dry before Vitalift-A', keys:['cleanser','isntree','vitalift','boj_eye','rejuran'] },
+  Wed: { note:'Exfoliation night — no other actives tonight', keys:['cleanser','somebymi','boj_eye','rejuran'] },
+  Thu: { note:'Vitamin C night — no retinoid tonight', keys:['cleanser','goodal','boj_eye','rejuran'] },
+  Fri: { note:'Retinoid night — skin must be fully dry before Vitalift-A', keys:['cleanser','isntree','vitalift','boj_eye','rejuran'] },
+  Sat: { note:'Reedle Shot night — wait a full 15 minutes before cream', keys:['cleanser','reedle','boj_eye','rejuran'] },
+  Sun: { note:null, rest:true, keys:['cleanser','isntree','boj_eye','rejuran'] },
+};
+
+const hairSchedule = {
+  Mon:null, Wed:null, Fri:null,
+  Tue:{ key:'dr33', note:'Apply tonight → wash hair Wednesday morning' },
+  Thu:{ key:'dr33', note:'Apply tonight → wash hair Friday morning' },
+  Sat:{ key:'vt_hair', note:'PDRN intensive — leave in all day Sunday, no wash tomorrow' },
+  Sun:{ key:'dr33', note:'Apply tonight → wash hair Monday morning' },
+};
+
+let ticked = JSON.parse(localStorage.getItem('routine_ticked') || '{}');
+let selectedDay = DAYS[new Date().getDay()];
+let activeTab = 'skin';
+
+function saveTicked() {
+  localStorage.setItem('routine_ticked', JSON.stringify(ticked));
+}
+
+function tickKey(day, session, idx) { return `${day}-${session}-${idx}`; }
+function isDone(day, session, idx) { return !!ticked[tickKey(day, session, idx)]; }
+
+function toggleTick(day, session, idx) {
+  const k = tickKey(day, session, idx);
+  ticked[k] = !ticked[k];
+  saveTicked();
+  renderContent();
+  updateProgress();
+  renderDays();
+}
+
+function resetDay() {
+  Object.keys(ticked).filter(k => k.startsWith(selectedDay + '-')).forEach(k => delete ticked[k]);
+  saveTicked();
+  renderContent();
+  updateProgress();
+  renderDays();
+}
+
+function getAllKeys(day) {
+  const ev = eveningData[day];
+  const hair = hairSchedule[day];
+  let all = [];
+  morningKeys.forEach((_,i) => all.push(tickKey(day,'morning',i)));
+  if (ev) ev.keys.forEach((_,i) => all.push(tickKey(day,'evening',i)));
+  if (hair) all.push(tickKey(day,'hair',0));
+  return all;
+}
+
+function updateProgress() {
+  const all = getAllKeys(selectedDay);
+  const done = all.filter(k => ticked[k]).length;
+  const pct = all.length ? Math.round((done/all.length)*100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressCount').textContent = done + ' / ' + all.length + ' steps';
+  document.getElementById('progressText').textContent = selectedDay === DAYS[new Date().getDay()] ? "Today's progress" : selectedDay + "'s progress";
+
+  const banner = document.getElementById('allDoneBanner');
+  if (done === all.length && all.length > 0) {
+    banner.innerHTML = `<div class="all-done"><div class="all-done-emoji">🌿</div><div class="all-done-text"><div class="all-done-title">Routine complete</div><div class="all-done-sub">Well done Greg. Your skin thanks you.</div></div></div>`;
+    banner.classList.remove('hidden');
+  } else {
+    banner.classList.add('hidden');
+  }
+}
+
+function waitConnector(time) {
+  return `<div class="wait-connector"><div class="wait-line-v"></div><div class="wait-badge">⏱ Wait ${time}</div><div class="wait-line-v"></div></div>`;
+}
+
+function stepCard(day, session, idx, key) {
+  const p = PRODUCTS[key];
+  const done = isDone(day, session, idx);
+  const showWait = idx > 0 && p.wait;
+  return `
+    ${showWait ? waitConnector(p.wait) : ''}
+    <div class="step-card ${done?'done':''}" onclick="toggleTick('${day}','${session}',${idx})">
+      <div class="step-top">
+        <div class="step-img-wrap">
+          <span class="img-emoji">${E[key]}</span>
+          <div class="step-num num-${session}">${idx+1}</div>
+        </div>
+        <div class="step-meta">
+          <div class="step-product">${p.name}</div>
+          <div class="step-brand">${p.brand}</div>
+          <span class="step-tag tag-${p.tag}">${p.tagLabel}</span>
+        </div>
+        <div class="step-tick">${done ? '✓' : ''}</div>
+      </div>
+      <div class="step-how">${p.how}</div>
+    </div>
+  `;
+}
+
+function hairStepCard(day, key, note) {
+  const p = HAIR_PRODUCTS[key];
+  const done = isDone(day, 'hair', 0);
+  return `
+    <div class="note-banner">${note}</div>
+    <div class="step-card ${done?'done':''}" onclick="toggleTick('${day}','hair',0)">
+      <div class="step-top">
+        <div class="step-img-wrap">
+          <span class="img-emoji">${E[key]}</span>
+          <div class="step-num num-hair">1</div>
+        </div>
+        <div class="step-meta">
+          <div class="step-product">${p.name}</div>
+          <div class="step-brand">${p.brand}</div>
+          <span class="step-tag tag-${p.tag}">${p.tagLabel}</span>
+        </div>
+        <div class="step-tick">${done ? '✓' : ''}</div>
+      </div>
+      <div class="step-how">${p.how}</div>
+    </div>
+  `;
+}
+
+function sectionProgress(day, session, keys) {
+  const done = keys.filter((_,i) => isDone(day, session, i)).length;
+  if (done === 0) return '';
+  if (done === keys.length) return '<span class="section-progress">✓ Done</span>';
+  return `<span class="section-progress">${done}/${keys.length}</span>`;
+}
+
+function renderDays() {
+  const today = DAYS[new Date().getDay()];
+  const scroll = document.getElementById('dayScroll');
+  scroll.innerHTML = '';
+  DAYS.forEach(d => {
+    const all = getAllKeys(d);
+    const done = all.filter(k => ticked[k]).length;
+    const complete = done === all.length && all.length > 0;
+    const pill = document.createElement('div');
+    pill.className = 'day-pill'+(d===selectedDay?' active':'')+(d===today?' today':'')+(complete?' completed':'');
+    pill.innerHTML = d+(d===today?'<div class="today-dot"></div>':'')+`<div class="day-check">✓</div>`;
+    pill.onclick = () => { selectedDay=d; renderDays(); renderContent(); updateProgress(); };
+    scroll.appendChild(pill);
+  });
+}
+
+function renderSkinContent() {
+  const ev = eveningData[selectedDay];
+  const mProg = sectionProgress(selectedDay,'morning',morningKeys);
+  const eProg = ev ? sectionProgress(selectedDay,'evening',ev.keys) : '';
+
+  let html = `
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon icon-morning">☀️</div>
+        <div class="section-title">Morning</div>
+        ${mProg || '<div class="section-badge">Daily</div>'}
+      </div>
+      ${morningKeys.map((k,i) => stepCard(selectedDay,'morning',i,k)).join('')}
+    </div>
+    <div class="divider"></div>
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon icon-evening">🌙</div>
+        <div class="section-title">Evening</div>
+        ${eProg || `<div class="section-badge">${selectedDay}</div>`}
+      </div>`;
+
+  if (ev) {
+    if (ev.note) html += `<div class="note-banner">${ev.note}</div>`;
+    if (ev.rest) html += `<div class="rest-card"><div class="rest-emoji">🌿</div><div class="rest-title">Rest Night</div><div class="rest-sub">Gentle routine only — let your barrier recover</div></div><br>`;
+    html += ev.keys.map((k,i) => stepCard(selectedDay,'evening',i,k)).join('');
+  }
+  html += '</div>';
+  document.getElementById('skinContent').innerHTML = html;
+}
+
+function renderHairContent() {
+  const h = hairSchedule[selectedDay];
+  let html = `
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon icon-hair">🌿</div>
+        <div class="section-title">Hair & Scalp</div>
+        <div class="section-badge">${selectedDay}</div>
+      </div>`;
+  if (h) {
+    html += hairStepCard(selectedDay, h.key, h.note);
+  } else {
+    html += `<div class="rest-card"><div class="rest-emoji">💤</div><div class="rest-title">Rest Day</div><div class="rest-sub">No scalp treatment tonight</div></div>`;
+  }
+  html += '</div>';
+  document.getElementById('hairContent').innerHTML = html;
+}
+
+function renderContent() { renderSkinContent(); renderHairContent(); }
+
+function switchTab(tab, el) {
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('skinContent').classList.toggle('hidden', tab!=='skin');
+  document.getElementById('hairContent').classList.toggle('hidden', tab!=='hair');
+}
+
+function goToday() {
+  selectedDay = DAYS[new Date().getDay()];
+  activeTab = 'skin';
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===0));
+  document.getElementById('skinContent').classList.remove('hidden');
+  document.getElementById('hairContent').classList.add('hidden');
+  renderDays(); renderContent(); updateProgress();
+}
+
+// Init
+renderDays();
+renderContent();
+updateProgress();
+setTimeout(() => {
+  const a = document.querySelector('.day-pill.active');
+  if (a) a.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+}, 100);
+</script>
+</body>
+</html>
