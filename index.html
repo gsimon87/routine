@@ -31,7 +31,6 @@
   .progress-label { display:flex; justify-content:space-between; font-size:11px; color:var(--stone); margin-bottom:5px; }
   .progress-bar { height:3px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden; }
   .progress-fill { height:100%; background:var(--gold); border-radius:2px; transition:width 0.4s ease; }
-
   .week-reset-notice { font-size:10px; color:rgba(201,168,76,0.6); margin-top:6px; letter-spacing:0.3px; }
 
   .day-scroll { display:flex; gap:8px; padding:20px 24px 0; overflow-x:auto; scrollbar-width:none; }
@@ -157,7 +156,6 @@
 <script>
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
-// Get the ISO week number for a given date
 function getISOWeek(date) {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   const dayNum = d.getUTCDay() || 7;
@@ -171,7 +169,6 @@ function currentWeekKey() {
   return `${now.getFullYear()}-W${getISOWeek(now)}`;
 }
 
-// On load: check if stored week matches current week. If not, wipe ticks.
 function checkWeeklyReset() {
   const storedWeek = localStorage.getItem('routine_week');
   const thisWeek = currentWeekKey();
@@ -192,7 +189,7 @@ const E = {
 const PRODUCTS = {
   cleanser: {
     name:'Low pH Good Morning Gel Cleanser', brand:'COSRX', tag:'cleanse', tagLabel:'Cleanse',
-    how:'Wet your face first. Squeeze a small amount onto your fingertips, lather gently in circular motions for 30–60 seconds. Rinse thoroughly with lukewarm water. No cotton pad needed.',
+    how:'Wet your face first. Squeeze a small amount onto your fingertips, lather gently in circular motions for 30–60 seconds. Rinse thoroughly with lukewarm water.',
     wait:null
   },
   boj_glow: {
@@ -202,7 +199,7 @@ const PRODUCTS = {
   },
   boj_eye: {
     name:'Revive Eye Serum (Ginseng + Retinal)', brand:'Beauty of Joseon', tag:'repair', tagLabel:'Eye Care',
-    how:'Dot a tiny amount around the orbital bone using your ring finger — never directly on the eyelid. Tap gently until absorbed.',
+    how:'Dot a tiny amount around the orbital bone using your ring finger — never directly on the eyelid. Tap gently until absorbed. Evening use only — contains retinal.',
     wait:null
   },
   boj_spf: {
@@ -232,7 +229,7 @@ const PRODUCTS = {
   },
   reedle: {
     name:'Reedle Shot 100', brand:'VT', tag:'active', tagLabel:'Treatment',
-    how:'Apply a pearl-sized amount to clean, dry skin. Press and roll gently using the micro-tip applicator in small circular motions across the whole face. Slight tingling is normal. Wait 15 minutes before applying the cream.',
+    how:'Apply a pearl-sized amount to clean, dry skin. Press and roll gently using the micro-tip applicator in small circular motions across the whole face. Slight tingling is normal. Wait 15 minutes before applying cream.',
     wait:'15 min'
   },
   rejuran: {
@@ -245,7 +242,7 @@ const PRODUCTS = {
 const HAIR_PRODUCTS = {
   dr33: {
     name:'Hair Ampoule+', brand:'Dr.33', tag:'scalp', tagLabel:'Scalp Treatment',
-    how:'Part dry hair into sections. Apply directly to scalp using the nozzle tip, working methodically across the whole scalp. Massage gently with fingertips for 2–3 minutes to stimulate circulation. Leave in overnight — no rinsing. Wash out the following morning.',
+    how:'Part dry hair into sections. Apply directly to scalp using the nozzle tip, working methodically across the whole scalp. Massage gently with fingertips for 2–3 minutes to stimulate circulation. Leave in overnight — wash out the following morning.',
   },
   vt_hair: {
     name:'PDRN Reedle Shot Hair Ampoule', brand:'VT', tag:'scalp', tagLabel:'PDRN Intensive',
@@ -253,14 +250,24 @@ const HAIR_PRODUCTS = {
   },
 };
 
-const morningKeys = ['cleanser','boj_glow','boj_eye','boj_spf'];
+// CORRECTED ROUTINES
+// Morning: no eye serum
+const morningKeys = ['cleanser','boj_glow','boj_spf'];
+
 const eveningData = {
+  // Mon: Vit C + eye serum ✓
   Mon: { note:'Vitamin C night — no retinoid tonight', keys:['cleanser','goodal','boj_eye','rejuran'] },
+  // Tue: Retinoid + eye serum (zone-separated) ✓
   Tue: { note:'Retinoid night — skin must be fully dry before Vitalift-A', keys:['cleanser','isntree','vitalift','boj_eye','rejuran'] },
-  Wed: { note:'Exfoliation night — no other actives tonight', keys:['cleanser','somebymi','boj_eye','rejuran'] },
+  // Wed: Exfoliation only — no eye serum ✓
+  Wed: { note:'Exfoliation night — no other actives, eye serum skipped tonight', keys:['cleanser','somebymi','rejuran'] },
+  // Thu: Vit C + eye serum ✓
   Thu: { note:'Vitamin C night — no retinoid tonight', keys:['cleanser','goodal','boj_eye','rejuran'] },
+  // Fri: Retinoid + eye serum ✓
   Fri: { note:'Retinoid night — skin must be fully dry before Vitalift-A', keys:['cleanser','isntree','vitalift','boj_eye','rejuran'] },
-  Sat: { note:'Reedle Shot night — wait a full 15 minutes before cream', keys:['cleanser','reedle','boj_eye','rejuran'] },
+  // Sat: Reedle Shot — no eye serum after micro-channelling ✓
+  Sat: { note:'Reedle Shot night — eye serum skipped to avoid over-penetration', keys:['cleanser','reedle','rejuran'] },
+  // Sun: Rest — eye serum ideal here ✓
   Sun: { note:null, rest:true, keys:['cleanser','isntree','boj_eye','rejuran'] },
 };
 
@@ -276,10 +283,7 @@ let ticked = JSON.parse(localStorage.getItem('routine_ticked') || '{}');
 let selectedDay = DAYS[new Date().getDay()];
 let activeTab = 'skin';
 
-function saveTicked() {
-  localStorage.setItem('routine_ticked', JSON.stringify(ticked));
-}
-
+function saveTicked() { localStorage.setItem('routine_ticked', JSON.stringify(ticked)); }
 function tickKey(day, session, idx) { return `${day}-${session}-${idx}`; }
 function isDone(day, session, idx) { return !!ticked[tickKey(day, session, idx)]; }
 
@@ -469,7 +473,6 @@ function goToday() {
   renderDays(); renderContent(); updateProgress();
 }
 
-// Init
 renderDays();
 renderContent();
 updateProgress();
